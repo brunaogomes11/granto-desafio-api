@@ -20,7 +20,7 @@ def inserir():
     file = request.files['file']
     other_data = request.form.to_dict()
     id_objeto = ObjectId()
-    try:
+    if file:
         filename = file.filename
         file_data = Binary(file.read())
         # Insere o arquivo no MongoDB
@@ -29,8 +29,8 @@ def inserir():
         document.update(other_data)
         collection.insert_one(document)
         return jsonify({'message': 'Arquivo e dados guardados'})
-    except:
-        return jsonify({'message': 'Arquivo não encontrado'})
+    else:
+        return jsonify({'message': 'Arquivo não encontrado'}), 404
 
 @app.route("/listar")
 def listar():
