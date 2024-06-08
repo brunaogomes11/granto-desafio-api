@@ -79,7 +79,7 @@ def busca():
 def baixar():
     id_objeto = request.form.get("_id")
     file_data = collection.find_one({"_id": ObjectId(id_objeto)})
-    try:
+    if file_data:
         # Obter os dados binários
         binary_data = file_data.get('file_data')
         nome = file_data.get('filename')
@@ -90,7 +90,7 @@ def baixar():
 
         # Enviar o PDF como resposta
         return send_file(temp_pdf_path, as_attachment=True)
-    except:
+    else:
         return "Arquivo não encontrado", 404
         
 if __name__ == '__main__':
