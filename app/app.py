@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 app = Flask(__name__)
 # Atualizando para buscar a URI corretamente
-database_url = os.getenv('DB_URL')
+database_url = os.getenv('DB_URI_PASS')
 client = MongoClient(database_url)
 db = client.mydata
 collection = db.mytable
