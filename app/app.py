@@ -5,10 +5,12 @@ import configparser
 from pymongo import MongoClient, InsertOne
 from bson import ObjectId, Binary
 import tempfile
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 # Atualizando para buscar a URI corretamente
-client = MongoClient('mongodb+srv://brunogomesper:QZMyiNXxyuaaHyVi@granto-cluster.ydafxyj.mongodb.net/')
+database_url = os.getenv('DB_URL')
+client = MongoClient(database_url)
 db = client.mydata
 collection = db.mytable
 @app.route("/")
