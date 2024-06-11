@@ -34,12 +34,18 @@ def inserir():
     else:
         return jsonify({'message': 'Arquivo não encontrado'}), 404
 
-@app.route("/listar", methods=["GET"])
-def listar():
-    mydata_collection = collection.find()
+@app.route("/listar")
+@app.route("/listar/<pagina>/<quantidade>")
+def listar(pagina=None, quantidade=None):
+    total_documentos = collection.count_documents({})
+    page = int(pagina) if pagina else 1
+    page_size = int(quantidade) if quantidade else total_documentos
+    start_index = (page - 1) * page_size
+    num_pages = total_documentos // page_size + (1 if total_documentos % page_size > 0 else 0)
+    documentos = collection.find({}).skip(start_index).limit(page_size)
     try:
         result = []
-        for data in mydata_collection:
+        for data in documentos:
             data['_id'] = str(data['_id'])
             if ('file_data' in data):
                 del data['file_data']
@@ -70,7 +76,6 @@ def busca():
                 result['_id'] = str(result['_id'])
                 del result['file_data']
                 formatted_results.append(result)
-            print(formatted_results)
             return jsonify(formatted_results)
         else:
             return jsonify({"error": "Formulário Inválido"}), 400
