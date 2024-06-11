@@ -34,7 +34,7 @@ def inserir():
     else:
         return jsonify({'message': 'Arquivo não encontrado'}), 404
 
-@app.route("/listar")
+@app.route("/listar", methods=["GET"])
 def listar():
     mydata_collection = collection.find()
     try:
