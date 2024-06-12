@@ -35,11 +35,11 @@ def inserir():
         return jsonify({'message': 'Arquivo não encontrado'}), 404
 
 @app.route("/listar")
-@app.route("/listar/<pagina>/<quantidade>")
+@app.route("/listar/<pagina>")
 def listar(pagina=None, quantidade=None):
     total_documentos = collection.count_documents({})
     page = int(pagina) if pagina else 1
-    page_size = int(quantidade) if quantidade else total_documentos
+    page_size = 10
     start_index = (page - 1) * page_size
     num_pages = total_documentos // page_size + (1 if total_documentos % page_size > 0 else 0)
     documentos = collection.find({}).skip(start_index).limit(page_size)
@@ -54,6 +54,12 @@ def listar(pagina=None, quantidade=None):
     except:
         jsonify({"error":"Não foi possível encontrar nenhum dado"})
 
+@app.route('/quantidade_documentos')
+def quantidade_documentos():
+    try:
+        return jsonify({"Quantidade":collection.count_documents({})})
+    except:
+        return 404
 @app.route("/buscar", methods=["GET", "POST"])
 def busca():
     try:
