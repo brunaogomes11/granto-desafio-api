@@ -65,7 +65,10 @@ def quantidade_documentos():
 
 @app.route("/buscar/<pagina>/<query>/", methods=['GET', 'POST'])
 @app.route("/buscar/<pagina>/<query>", methods=['GET', 'POST'])
+@app.route("/buscar/<query>/", methods=['GET', 'POST'])
 @app.route("/buscar/<query>", methods=['GET', 'POST'])
+@app.route("/buscar/<pagina>/", methods=['GET', 'POST'])
+@app.route("/buscar/<pagina>", methods=['GET', 'POST'])
 @app.route("/buscar/", methods=['GET', 'POST'])
 @app.route("/buscar", methods=['GET', 'POST'])
 def busca(query = '', pagina = 1):
