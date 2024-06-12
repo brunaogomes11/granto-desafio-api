@@ -39,7 +39,7 @@ def inserir():
 @app.route("/listar")
 def listar(pagina=None):
     total_documentos = collection.count_documents({})
-    page = int(pagina) if pagina else 1
+    page = int(pagina) if (pagina.isdigit() and pagina) else 1
     page_size = 10
     start_index = (page - 1) * page_size
     num_pages = total_documentos // page_size + (1 if total_documentos % page_size > 0 else 0)
@@ -71,10 +71,10 @@ def quantidade_documentos():
 @app.route("/buscar/<pagina>", methods=['POST'])
 @app.route("/buscar/", methods=['POST'])
 @app.route("/buscar", methods=['POST'])
-def busca(query = '', pagina = None):
+def busca(query = '', pagina = 1):
     if request.method == "POST":
         all_list = [' ', '', '*']
-        page = int(pagina) if pagina else 1
+        page = int(pagina) if (pagina.isdigit() and pagina) else 1
         page_size = 10
         start_index = (page - 1) * page_size
         if query not in all_list :
