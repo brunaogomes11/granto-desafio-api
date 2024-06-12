@@ -65,13 +65,9 @@ def quantidade_documentos():
 
 @app.route("/buscar/<pagina>/<query>/", methods=['POST'])
 @app.route("/buscar/<pagina>/<query>", methods=['POST'])
-@app.route("/buscar/<query>/", methods=['POST'])
-@app.route("/buscar/<query>", methods=['POST'])
-@app.route("/buscar/<pagina>/", methods=['POST'])
-@app.route("/buscar/<pagina>", methods=['POST'])
 @app.route("/buscar/", methods=['POST'])
 @app.route("/buscar", methods=['POST'])
-def busca(query = '', pagina = 1):
+def busca(query = '', pagina = None):
     if request.method == "POST":
         all_list = [' ', '', '*']
         page = int(pagina) if (pagina.isdigit() and pagina) else 1
