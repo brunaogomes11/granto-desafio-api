@@ -63,15 +63,15 @@ def quantidade_documentos():
     except:
         return 404
 
-@app.route("/buscar/<pagina>/<query>/", methods=['GET', 'POST'])
-@app.route("/buscar/<pagina>/<query>", methods=['GET', 'POST'])
-@app.route("/buscar/<query>/", methods=['GET', 'POST'])
-@app.route("/buscar/<query>", methods=['GET', 'POST'])
-@app.route("/buscar/<pagina>/", methods=['GET', 'POST'])
-@app.route("/buscar/<pagina>", methods=['GET', 'POST'])
-@app.route("/buscar/", methods=['GET', 'POST'])
-@app.route("/buscar", methods=['GET', 'POST'])
-def busca(query = '', pagina = 1):
+@app.route("/buscar/<pagina>/<query>/", methods=['POST'])
+@app.route("/buscar/<pagina>/<query>", methods=['POST'])
+@app.route("/buscar/<query>/", methods=['POST'])
+@app.route("/buscar/<query>", methods=['POST'])
+@app.route("/buscar/<pagina>/", methods=['POST'])
+@app.route("/buscar/<pagina>", methods=['POST'])
+@app.route("/buscar/", methods=['POST'])
+@app.route("/buscar", methods=['POST'])
+def busca(query = '', pagina = None):
     if request.method == "POST":
         all_list = [' ', '', '*']
         page = int(pagina) if pagina else 1
