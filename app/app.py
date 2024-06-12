@@ -36,7 +36,7 @@ def inserir():
 
 @app.route("/listar")
 @app.route("/listar/<pagina>")
-def listar(pagina=None, quantidade=None):
+def listar(pagina=None):
     total_documentos = collection.count_documents({})
     page = int(pagina) if pagina else 1
     page_size = 10
