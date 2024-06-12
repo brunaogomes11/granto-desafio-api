@@ -64,7 +64,7 @@ def quantidade_documentos():
         return 404
 @app.route("/buscar", methods=["GET", "POST"])
 def busca():
-    try:
+    if request.method == "POST":
         query = request.form.get("search-bar")
         if query:
             index_config = {
@@ -87,7 +87,7 @@ def busca():
             return jsonify(formatted_results)
         else:
             return jsonify({"error": "Formulário Inválido"}), 400
-    except:
+    else:
         return jsonify({"error": "Método não permitido"}), 405
 
 @app.route("/baixar", methods=["GET", "POST"])
