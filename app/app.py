@@ -35,6 +35,7 @@ def inserir():
         return jsonify({'message': 'Arquivo não encontrado'}), 404
 
 @app.route("/listar/<pagina>")
+@app.route("/listar/")
 @app.route("/listar")
 def listar(pagina=None):
     total_documentos = collection.count_documents({})
@@ -50,7 +51,7 @@ def listar(pagina=None):
             if ('file_data' in data):
                 del data['file_data']
             result.append(data)
-        return jsonify(result)
+        return jsonify({'index_inicial':start_index,'total':total_documentos,'documentos': result})
     except:
         jsonify({"error":"Não foi possível encontrar nenhum dado"})
 
