@@ -65,7 +65,7 @@ def quantidade_documentos():
 @app.route("/buscar", methods=["GET", "POST"])
 def busca():
     if request.method == "POST":
-        query = request.form.get("search-bar")
+        query = request.form.get("search_bar")
         if query:
             index_config = {
                 "$search": {
