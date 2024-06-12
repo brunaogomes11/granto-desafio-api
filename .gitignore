@@ -1,2 +1,8 @@
+# Variaveis de ambiente
 .env
+
 .*txt
+
+# Python
+__pycache__/
+*.py[cod]
