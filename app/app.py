@@ -62,11 +62,19 @@ def quantidade_documentos():
         return jsonify({"Quantidade":collection.count_documents({})})
     except:
         return 404
-@app.route("/buscar", methods=["GET", "POST"])
-def busca():
+
+@app.route("/buscar/<pagina>/<query>/", methods=['GET', 'POST'])
+@app.route("/buscar/<pagina>/<query>", methods=['GET', 'POST'])
+@app.route("/buscar/<query>", methods=['GET', 'POST'])
+@app.route("/buscar/", methods=['GET', 'POST'])
+@app.route("/buscar", methods=['GET', 'POST'])
+def busca(query = '', pagina = 1):
     if request.method == "POST":
-        query = request.form.get("search_bar")
-        if query:
+        all_list = [' ', '', '*']
+        page = int(pagina) if pagina else 1
+        page_size = 10
+        start_index = (page - 1) * page_size
+        if query not in all_list :
             index_config = {
                 "$search": {
                     "index": "teste-search",
@@ -82,9 +90,29 @@ def busca():
             formatted_results = []
             for result in results:
                 result['_id'] = str(result['_id'])
-                del result['file_data']
+                if ('file_data' in result):
+                    del result['file_data']
                 formatted_results.append(result)
-            return jsonify(formatted_results)
+            total_documentos = len(formatted_results)
+            num_pages = total_documentos // page_size + (1 if total_documentos % page_size > 0 else 0)
+            final_index = (start_index+10) if ((start_index+10) < total_documentos) else total_documentos
+            return jsonify({'index_inicial':start_index, 'index_final':final_index,'total':total_documentos,'documentos': result})
+
+        elif query in all_list:
+            total_documentos = collection.count_documents({})
+            num_pages = total_documentos // page_size + (1 if total_documentos % page_size > 0 else 0)
+            final_index = (start_index+10) if ((start_index+10) < total_documentos) else total_documentos
+            documentos = collection.find({}).skip(start_index).limit(page_size)
+            try:
+                result = []
+                for data in documentos:
+                    data['_id'] = str(data['_id'])
+                    if ('file_data' in data):
+                        del data['file_data']
+                    result.append(data)
+                return jsonify({'index_inicial':start_index, 'index_final':final_index,'total':total_documentos,'documentos': result})
+            except:
+                jsonify({"error":"Não foi possível encontrar nenhum dado"}), 404
         else:
             return jsonify({"error": "Formulário Inválido"}), 400
     else:
