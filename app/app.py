@@ -34,8 +34,8 @@ def inserir():
     else:
         return jsonify({'message': 'Arquivo não encontrado'}), 404
 
-@app.route("/listar")
 @app.route("/listar/<pagina>")
+@app.route("/listar")
 def listar(pagina=None):
     total_documentos = collection.count_documents({})
     page = int(pagina) if pagina else 1
