@@ -43,6 +43,7 @@ def listar(pagina=None):
     page_size = 10
     start_index = (page - 1) * page_size
     num_pages = total_documentos // page_size + (1 if total_documentos % page_size > 0 else 0)
+    final_index = (start_index+10) if ((start_index+10) < total_documentos) else total_documentos
     documentos = collection.find({}).skip(start_index).limit(page_size)
     try:
         result = []
@@ -51,7 +52,7 @@ def listar(pagina=None):
             if ('file_data' in data):
                 del data['file_data']
             result.append(data)
-        return jsonify({'index_inicial':start_index,'total':total_documentos,'documentos': result})
+        return jsonify({'index_inicial':start_index, 'index_final':final_index,'total':total_documentos,'documentos': result})
     except:
         jsonify({"error":"Não foi possível encontrar nenhum dado"})
 
