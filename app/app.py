@@ -37,9 +37,9 @@ def inserir():
 @app.route("/listar/<pagina>")
 @app.route("/listar/")
 @app.route("/listar")
-def listar(pagina=None):
+def listar(pagina=1):
     total_documentos = collection.count_documents({})
-    page = int(pagina) if (pagina.isdigit() and pagina) else 1
+    page = int(pagina) if pagina else 1
     page_size = 10
     start_index = (page - 1) * page_size
     num_pages = total_documentos // page_size + (1 if total_documentos % page_size > 0 else 0)
@@ -63,17 +63,19 @@ def quantidade_documentos():
     except:
         return 404
 
-@app.route("/buscar/<pagina>/<query>/", methods=['POST'])
-@app.route("/buscar/<pagina>/<query>", methods=['POST'])
-@app.route("/buscar/", methods=['POST'])
-@app.route("/buscar", methods=['POST'])
+@app.route("/buscar/<pagina>/<query>/", methods=['GET', 'POST'])
+@app.route("/buscar/<pagina>/<query>", methods=['GET', 'POST'])
+@app.route("/buscar/<pagina>/", methods=['GET', 'POST'])
+@app.route("/buscar/<pagina>", methods=['GET', 'POST'])
+@app.route("/buscar/", methods=['GET', 'POST'])
+@app.route("/buscar", methods=['GET', 'POST'])
 def busca(query = '', pagina = None):
     if request.method == "POST":
         all_list = [' ', '', '*']
-        page = int(pagina) if (pagina.isdigit() and pagina) else 1
+        page = int(pagina) if pagina else 1
         page_size = 10
         start_index = (page - 1) * page_size
-        if query not in all_list :
+        if query not in all_list:
             index_config = {
                 "$search": {
                     "index": "teste-search",
@@ -95,7 +97,7 @@ def busca(query = '', pagina = None):
             total_documentos = len(formatted_results)
             num_pages = total_documentos // page_size + (1 if total_documentos % page_size > 0 else 0)
             final_index = (start_index+10) if ((start_index+10) < total_documentos) else total_documentos
-            return jsonify({'index_inicial':start_index, 'index_final':final_index,'total':total_documentos,'documentos': result})
+            return jsonify({'index_inicial':start_index, 'index_final':final_index,'total':total_documentos,'documentos': formatted_results})
 
         elif query in all_list:
             total_documentos = collection.count_documents({})
