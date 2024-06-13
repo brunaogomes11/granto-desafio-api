@@ -119,9 +119,9 @@ def busca(query = '', pagina = None):
     else:
         return jsonify({"error": "Método não permitido"}), 405
 
-@app.route("/baixar", methods=["GET", "POST"])
+@app.route("/baixar/<id>")
 def baixar():
-    id_objeto = request.form.get("_id")
+    id_objeto = request.args.get("_id")
     file_data = collection.find_one({"_id": ObjectId(id_objeto)})
     if file_data:
         # Obter os dados binários
