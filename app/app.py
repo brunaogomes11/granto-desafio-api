@@ -121,24 +121,20 @@ def busca(query = '', pagina = None):
 
 @app.route("/baixar/<id>")
 def baixar(id):
-    try:
-        id_objeto = request.args.get("id")
-        file_data = collection.find_one({"_id": ObjectId(id_objeto)})
-        if file_data:
-            # Obter os dados binários
-            binary_data = file_data.get('file_data')
-            nome = file_data.get('filename')
-            # Criar um novo arquivo PDF
-            with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as temp_pdf_file:
-                temp_pdf_path = temp_pdf_file.name
-                temp_pdf_file.write(binary_data)
+    file_data = collection.find_one({"_id": ObjectId(id)})
+    if file_data:
+        # Obter os dados binários
+        binary_data = file_data.get('file_data')
+        nome = file_data.get('filename')
+        # Criar um novo arquivo PDF
+        with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as temp_pdf_file:
+            temp_pdf_path = temp_pdf_file.name
+            temp_pdf_file.write(binary_data)
 
-            # Enviar o PDF como resposta
-            return send_file(temp_pdf_path, as_attachment=True, filename=nome)
-        else:
-            return "Arquivo não encontrado", 404
-    except:
-        return "Id inválido", 405 
+        # Enviar o PDF como resposta
+        return send_file(temp_pdf_path, as_attachment=True)
+    else:
+        return "Arquivo não encontrado", 404
         
 if __name__ == '__main__':
     app.run(debug=True)
