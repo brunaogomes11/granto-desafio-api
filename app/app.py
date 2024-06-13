@@ -132,7 +132,7 @@ def baixar(id):
             temp_pdf_file.write(binary_data)
 
         # Enviar o PDF como resposta
-        return send_file(temp_pdf_path, as_attachment=True)
+        return send_file(temp_pdf_path, as_attachment=True, filename=nome)
     else:
         return "Arquivo não encontrado", 404
         
