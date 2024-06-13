@@ -122,7 +122,7 @@ def busca(query = '', pagina = None):
 @app.route("/baixar/<id>")
 def baixar(id):
     try:
-        id_objeto = request.args.get("_id")
+        id_objeto = request.args.get("id")
         file_data = collection.find_one({"_id": ObjectId(id_objeto)})
         if file_data:
             # Obter os dados binários
@@ -134,7 +134,7 @@ def baixar(id):
                 temp_pdf_file.write(binary_data)
 
             # Enviar o PDF como resposta
-            return send_file(temp_pdf_path, as_attachment=True)
+            return send_file(temp_pdf_path, as_attachment=True, filename=nome)
         else:
             return "Arquivo não encontrado", 404
     except:
