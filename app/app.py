@@ -52,7 +52,7 @@ def listar(pagina=1):
             if ('file_data' in data):
                 del data['file_data']
             result.append(data)
-        return jsonify({'index_inicial':start_index, 'index_final':final_index,'total':total_documentos,'documentos': result})
+        return jsonify({'index_inicial':start_index, 'index_final':final_index,'total':total_documentos,'documentos': result, 'num_pages':num_pages})
     except:
         jsonify({"error":"Não foi possível encontrar nenhum dado"})
 
@@ -97,7 +97,7 @@ def busca(query = '', pagina = None):
             total_documentos = len(formatted_results)
             num_pages = total_documentos // page_size + (1 if total_documentos % page_size > 0 else 0)
             final_index = (start_index+10) if ((start_index+10) < total_documentos) else total_documentos
-            return jsonify({'index_inicial':start_index, 'index_final':final_index,'total':total_documentos,'documentos': formatted_results})
+            return jsonify({'index_inicial':start_index, 'index_final':final_index,'total':total_documentos,'documentos': formatted_results, 'num_pages':num_pages})
 
         elif query in all_list:
             total_documentos = collection.count_documents({})
@@ -111,7 +111,7 @@ def busca(query = '', pagina = None):
                     if ('file_data' in data):
                         del data['file_data']
                     result.append(data)
-                return jsonify({'index_inicial':start_index, 'index_final':final_index,'total':total_documentos,'documentos': result})
+                return jsonify({'index_inicial':start_index, 'index_final':final_index,'total':total_documentos,'documentos': result, 'num_pages':num_pages})
             except:
                 jsonify({"error":"Não foi possível encontrar nenhum dado"}), 404
         else:
