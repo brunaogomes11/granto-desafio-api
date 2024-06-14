@@ -6,13 +6,15 @@ from pymongo import MongoClient, InsertOne
 from bson import ObjectId, Binary
 import tempfile
 from dotenv import load_dotenv
+from app.PDFReader.main import main
+from app.PDFReader.src.db import Database 
 
 app = Flask(__name__)
 # Atualizando para buscar a URI corretamente
-database_url = os.getenv('DB_URI_PASS')
+database_url = os.getenv('URI')
 client = MongoClient(database_url)
-db = client.mydata
-collection = db.mytable
+db = client['Cluster0']
+col = db['documents']
 @app.route("/")
 def homePage():
     return "Servidor Ok"
@@ -25,11 +27,8 @@ def inserir():
     if file:
         filename = file.filename
         file_data = Binary(file.read())
-        # Insere o arquivo no MongoDB
-        document = {'_id':id_objeto, 'filename': filename, 'file_data': file_data}
-        # Adiciona outros dados ao documento
-        document.update(other_data)
-        collection.insert_one(document)
+        db = Database()
+        main(db, file_data, filename)
         return jsonify({'message': 'Arquivo e dados guardados'})
     else:
         return jsonify({'message': 'Arquivo não encontrado'}), 404
@@ -38,13 +37,13 @@ def inserir():
 @app.route("/listar/")
 @app.route("/listar")
 def listar(pagina=1):
-    total_documentos = collection.count_documents({})
+    total_documentos = col.count_documents({})
     page = int(pagina) if pagina else 1
     page_size = 10
     start_index = (page - 1) * page_size
     num_pages = total_documentos // page_size + (1 if total_documentos % page_size > 0 else 0)
     final_index = (start_index+10) if ((start_index+10) < total_documentos) else total_documentos
-    documentos = collection.find({}).skip(start_index).limit(page_size)
+    documentos = col.find({}).skip(start_index).limit(page_size)
     try:
         result = []
         for data in documentos:
@@ -59,7 +58,7 @@ def listar(pagina=1):
 @app.route('/quantidade_documentos')
 def quantidade_documentos():
     try:
-        return jsonify({"Quantidade":collection.count_documents({})})
+        return jsonify({"Quantidade":col.count_documents({})})
     except:
         return 404
 
@@ -87,7 +86,7 @@ def busca(query = '', pagina = None):
                     }
                 }
             }
-            results = collection.aggregate([index_config])
+            results = col.aggregate([index_config])
             formatted_results = []
             for result in results:
                 result['_id'] = str(result['_id'])
@@ -100,10 +99,10 @@ def busca(query = '', pagina = None):
             return jsonify({'index_inicial':start_index, 'index_final':final_index,'total':total_documentos,'documentos': formatted_results, 'num_pages':num_pages})
 
         elif query in all_list:
-            total_documentos = collection.count_documents({})
+            total_documentos = col.count_documents({})
             num_pages = total_documentos // page_size + (1 if total_documentos % page_size > 0 else 0)
             final_index = (start_index+10) if ((start_index+10) < total_documentos) else total_documentos
-            documentos = collection.find({}).skip(start_index).limit(page_size)
+            documentos = col.find({}).skip(start_index).limit(page_size)
             try:
                 result = []
                 for data in documentos:
@@ -121,7 +120,7 @@ def busca(query = '', pagina = None):
 
 @app.route("/baixar/<id>")
 def baixar(id):
-    file_data = collection.find_one({"_id": ObjectId(id)})
+    file_data = col.find_one({"_id": ObjectId(id)})
     if file_data:
         # Obter os dados binários
         binary_data = file_data.get('file_data')
