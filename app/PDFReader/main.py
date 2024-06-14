@@ -5,6 +5,7 @@ from app.PDFReader.src.db import Database
 import tempfile
 from time import time
 from json import dump
+import base64
 
 ner = NER()
 
@@ -19,7 +20,12 @@ def main(db: Database, file_data, filename):
     text_dict = doc_reader.get_text_dict_from_pdf()
     print(text_dict.keys())
     doc = ner.classify_text(text_dict)
-
+    file_data = base64.b64encode(file_data).decode('utf-8')
+    file_data_dict = {
+        'filename': filename,
+        'file_data':file_data
+    }
+    doc.update(file_data_dict)
     pprint(doc, sort_dicts=False)
     print(time() - start)
 

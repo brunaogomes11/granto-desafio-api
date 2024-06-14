@@ -8,6 +8,7 @@ import tempfile
 from dotenv import load_dotenv
 from app.PDFReader.main import main
 from app.PDFReader.src.db import Database 
+import base64
 
 app = Flask(__name__)
 # Atualizando para buscar a URI corretamente
@@ -124,6 +125,7 @@ def baixar(id):
     if file_data:
         # Obter os dados binários
         binary_data = file_data.get('file_data')
+        binary_data = base64.b64decode(binary_data)
         nome = file_data.get('filename')
         # Criar um novo arquivo PDF
         with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as temp_pdf_file:
@@ -131,7 +133,7 @@ def baixar(id):
             temp_pdf_file.write(binary_data)
 
         # Enviar o PDF como resposta
-        return send_file(temp_pdf_path, as_attachment=False, filename=nome)
+        return send_file(temp_pdf_path, as_attachment=False, download_name=nome)
     else:
         return "Arquivo não encontrado", 404
         
