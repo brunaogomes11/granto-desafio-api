@@ -6,3 +6,15 @@
 # Python
 __pycache__/
 *.py[cod]
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# virtualenv
+.venv/
+venv/
+ENV/
+
+# Test
+test/

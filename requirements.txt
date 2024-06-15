@@ -13,13 +13,8 @@ urllib3==2.2.1
 Werkzeug==3.0.3
 gunicorn==22.0.0
 python-dotenv==1.0.1
-spacy
-PyMuPDF 
-pytesseract 
-pillow
-python-dotenv
-Unidecode
-# rake-nltk
-gensim
-nltk
-scipy
+spacy==3.7.5
+PyMuPDF==1.24.5
+python-docx==1.1.2
+pytesseract==0.3.10
+Unidecode==1.3.8
