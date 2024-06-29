@@ -45,7 +45,7 @@ class ReadDocument:
         if len(text_chunks) == 0:
             print("Scanned Document")
             text_chunks = self.__get_chuncks_from_scanned_doc()
-        self.debug(text_chunks)
+        # self.debug(text_chunks)
 
         self.doc.close()
         return text_chunks
