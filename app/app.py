@@ -181,7 +181,11 @@ def dados_graficos(grafico):
                 "$group": {
                     "_id": "$preambulo.cnpj",
                     "valor_total_seguro": {"$sum": "$valor_seguro_numeric"},
-                    "eixo_categorias": {"$first": "$preambulo.organizacao.razao_social"}
+                    "eixo_categorias": {"$first": 
+                        {
+                            "$ifNull": ["$preambulo.organizacao.razao_social", "Empresa não especificada"]
+                        }
+                    }
                 }
             },
             {
