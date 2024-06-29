@@ -179,21 +179,17 @@ def dados_graficos(grafico):
             },
             {
                 "$group": {
-                    "_id": "$preambulo.cnpj",
-                    "valor_total_seguro": {"$sum": "$valor_seguro_numeric"},
-                    "eixo_categorias": {"$first": 
-                        {
-                            "$ifNull": ["$preambulo.organizacao.razao_social", "Empresa não especificada"]
-                        }
-                    }
+                    "_id": {
+                        "$ifNull": ["$preambulo.organizacao.razao_social", "Empresa não especificada"]
+                    },
+                    "valor_total_seguro": {"$sum": "$valor_seguro_numeric"}
                 }
             },
             {
                 "$project": {
                     "_id": 0,
-                    "cnpj": "$_id",
-                    "eixo_valores": "$valor_total_seguro",
-                    "eixo_categorias": 1
+                    "eixo_categorias": "$_id",
+                    "eixo_valores": "$valor_total_seguro"
                 }
             }
         ]
