@@ -6,6 +6,7 @@ import tempfile
 from app.document_reader import read_and_classify
 from app.db.database import Database
 import base64
+import json
 
 app = Flask(__name__)
 db = Database()
@@ -74,7 +75,7 @@ def busca(query = '', pagina = None):
         if query not in all_list:
             index_config = {
                 "$search": {
-                    "index": "teste-search",
+                    "index": "search",
                     "text": {
                         "query": query,
                         "path": {
@@ -132,6 +133,131 @@ def baixar(id):
         return send_file(temp_pdf_path, as_attachment=False, download_name=nome)
     else:
         return "Arquivo não encontrado", 404
-        
+
+@app.route("/data_graficos/<grafico>")
+def dados_graficos(grafico):
+    if grafico != "mapa":
+        pipeline = [
+            {
+                "$addFields": {
+                    "valor_seguro_extracao": {
+                        "$regexFind": {
+                            "input": "$preambulo.valor",
+                            "regex": "[0-9,.]+"
+                        }
+                    }
+                }
+            },
+            {
+                "$addFields": {
+                    "valor_seguro_limpo": {
+                        "$replaceAll": {
+                            "input": "$valor_seguro_extracao.match",
+                            "find": ".",
+                            "replacement": ""
+                        }
+                    }
+                }
+            },
+            {
+                "$addFields": {
+                    "valor_seguro_limpo": {
+                        "$replaceAll": {
+                            "input": "$valor_seguro_limpo",
+                            "find": ",",
+                            "replacement": "."
+                        }
+                    }
+                }
+            },
+            {
+                "$addFields": {
+                    "valor_seguro_numeric": {
+                        "$toDouble": "$valor_seguro_limpo"
+                    }
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$preambulo.cnpj",
+                    "valor_total_seguro": {"$sum": "$valor_seguro_numeric"},
+                    "nome_empresa": {"$first": "$preambulo.organizacao.razao_social"}
+                }
+            },
+            {
+                "$project": {
+                    "_id": 0,
+                    "cnpj": "$_id",
+                    "valor_seguro": "$valor_total_seguro",
+                    "nome_empresa": 1
+                }
+            }
+        ]
+        resultado = list(db.col.aggregate(pipeline))
+        data = {
+            "data_name": "Valores Contratados por cada Empresa",
+            "data_eixoX": "Valor em Reais",
+            "data_eixoY": "Empresa",
+            "tipo_grafico": "horizontalBar",
+            "data": resultado
+        }
+        return jsonify(data)
+    else:
+        with open('app/estados.json', 'r', encoding='utf-8') as f:
+            estados = json.load(f)
+
+        # Criar um mapeamento de siglas para nomes de estados
+        estados_conhecidos = {estado['sigla']: estado['nome'] for estado in estados}
+        # Lista de estados com padrões adicionais para busca
+        padroes_adicionais = {
+            "Estado do ": "",
+            "Estado da ": "",
+            "Estado de ": ""
+        }
+
+        contagem_estados = {sigla: 0 for sigla in estados_conhecidos}
+
+        # Consulta no MongoDB
+        documentos = db.col.find()
+
+        for doc in documentos:
+            preambulo = doc.get('preambulo', {})
+            endereco = preambulo.get('endereco', '')
+            estado_encontrado = None
+            
+            # Busca por nome de estado ou sigla
+            for sigla, nome in estados_conhecidos.items():
+                if sigla in endereco or nome in endereco:
+                    estado_encontrado = sigla
+                    break
+            
+            # Se não encontrou, busca pelos padrões adicionais
+            if not estado_encontrado:
+                for padrao in padroes_adicionais.keys():
+                    if padrao in endereco:
+                        estado_encontrado = padroes_adicionais[padrao]
+                        break
+            
+            # Se ainda não encontrou, define como "Estado não definido"
+            if not estado_encontrado:
+                estado_encontrado = "Estado não definido"
+
+            # Incrementa a contagem para o estado encontrado
+            if estado_encontrado in contagem_estados:
+                contagem_estados[estado_encontrado] += 1
+            else:
+                contagem_estados[estado_encontrado] = 1
+
+        # Formata o resultado para retornar como JSON no formato desejado
+        resultado_final = {
+            "states": [
+                {sigla: {"name": estados_conhecidos.get(sigla, "Estado não definido"), "number": contagem}}
+                for sigla, contagem in contagem_estados.items()
+            ]
+        }
+
+
+        return jsonify(resultado_final)
+
 if __name__ == '__main__':
     app.run(debug=True)
