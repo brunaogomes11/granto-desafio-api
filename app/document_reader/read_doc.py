@@ -15,7 +15,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 class ReadDocument:
     def __init__(self):
         self.doc = None
-        self.__cl_model = load("./app/document_reader/models/cl_model")
+        self.__cl_model = load("./app/document_reader/models/cl-v2_1")
 
         self.__min_row_len = 75
         self.__initial_key = "preambulo"
@@ -40,12 +40,12 @@ class ReadDocument:
 
     def read_from_pdf(self, path: str) -> list:
         self.doc = fitz.open(path)
-        text_chunks = self.__get_chuncks_from_pdf()
+        text_chunks = self.__get_chuncks_from_pdf()        
 
         if len(text_chunks) == 0:
             print("Scanned Document")
             text_chunks = self.__get_chuncks_from_scanned_doc()
-        # self.debug(all_text)
+        # self.debug(text_chunks)
 
         self.doc.close()
         return text_chunks
@@ -115,7 +115,7 @@ class ReadDocument:
         return text_list
 
 
-    def __process_images_concurrently(self, images: Image, max_workers = 1) -> list:
+    def __process_images_concurrently(self, images: Image, max_workers = 4) -> list:
         results = []
     
         with ThreadPoolExecutor(max_workers = max_workers) as executor:
@@ -132,7 +132,7 @@ class ReadDocument:
 
     
     def __is_paragraph(self, text_list: list, paragraph: str, row: str):
-        if len(row) < self.__min_row_len or row[-1] in ["."]:
+        if len(row) < self.__min_row_len or row.strip()[-1] in [".", ";", ":"]: 
             paragraph += f" {row}"
 
             if paragraph.strip() != "" and len(paragraph) > 5:
@@ -153,9 +153,14 @@ class ReadDocument:
         for row in list:
             row = row.strip()
             doc = self.__cl_model(row).cats # Verify if is a title
+            
 
-            if doc["Clausula"] >= 0.95:
-                print(row)
+            if doc["Clausula"] >= 0.95 or "CLAUSULA" in unidecode(row[:16]).upper(): # Intervalo arbitrário
+                if  len(row) > 120: # Número arbitrário
+                    row = row.split("-")[0]
+                    row = row.split("–")[0]
+                    print(row)
+                
                 new_key = self.__clean_key(row)
 
                 if len(all_text) != 0:
@@ -163,6 +168,7 @@ class ReadDocument:
 
                 key = new_key
                 all_text = []
+
             else:
                 all_text.append(row)
 
@@ -186,11 +192,10 @@ class ReadDocument:
         new_key = new_key.replace(" ", "_")
         return new_key
 
-
-    def debug(self, list):
-        with open("./test/data/result.txt", mode="w", encoding="UTF-8") as f:
-            f.write("")
-
-        with open("./test/data/result.txt", mode="a", encoding="UTF-8") as f:
-            for text in list:
-                f.write(text + "\n\n")
+    def debug(self, text_chunks):
+        with open("./app/document_reader/test/data/result.txt", mode='w') as txt:
+            txt.write("")
+        
+        with open("./app/document_reader/test/data/result.txt", mode='a', encoding='UTF-8') as txt:
+            for line in text_chunks:
+                txt.write(line + "\n")
