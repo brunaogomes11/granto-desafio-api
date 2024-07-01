@@ -31,6 +31,16 @@ def inserir():
     else:
         return jsonify({'message': 'Arquivo não encontrado'}), 404
 
+@app.route("/deletar/<id>")
+def deletar(id):
+    
+    result = db.col.delete_one({"_id": ObjectId(id)})
+
+    if result.deleted_count == 1:
+        return jsonify({'message': 'Documento removido com sucesso'}), 200
+    else:
+        return jsonify({'message': 'Documento não encontrado'}), 404
+
 @app.route("/listar/<pagina>")
 @app.route("/listar/")
 @app.route("/listar")
