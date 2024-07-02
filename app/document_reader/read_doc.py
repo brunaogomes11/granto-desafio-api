@@ -46,7 +46,7 @@ class ReadDocument:
             print("Scanned Document")
             text_chunks = self.__get_chuncks_from_scanned_doc()
 
-        self.debug(text_chunks)
+        # self.debug(text_chunks)
 
         self.doc.close()
         return text_chunks
@@ -116,7 +116,7 @@ class ReadDocument:
         return text_list
 
 
-    def __process_images_concurrently(self, images: Image, max_workers = 8) -> list:
+    def __process_images_concurrently(self, images: Image, max_workers = 1) -> list:
         results = []
     
         with ThreadPoolExecutor(max_workers = max_workers) as executor:
