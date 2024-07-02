@@ -3,7 +3,8 @@ from spacy import load
 
 class NER():
     def __init__(self):
-        self.nlp = load('./app/document_reader/models/ner-v2_5')
+        self.nlp = load('./app/document_reader/models/ner-v2_6')
+        self.__initial_key = "preambulo"
         self.labels = {
             'PER': 'pessoa',
             'ORG': 'organizacao',
@@ -52,14 +53,14 @@ class NER():
 
     def classify_text(self, text_dict: dict) -> dict:
         result = {}
+        find_value = False
+        main_keys = []
 
         for key, list_ in text_dict.items():
             clause = {}
 
             for paragraph in list_:
                 doc = self.nlp(paragraph)
-                is_next = False
-                contains = any(key_word in paragraph.lower() for key_word in ['contratada', 'contratante'])
                 
                 i = 0
                 while i < len(doc.ents):
@@ -72,26 +73,20 @@ class NER():
                         _entity, increment = self.add_entity_attributes(i, doc.ents)
                         entity.update(_entity)
                     
-                    if ent.label_ == 'ORG' and contains:
-                        if len(entity.keys()) <= 1:
-                            i += 1
-                            continue
+                    if ent.label_ == 'VALOR' and not find_value:
+                        if key == self.__initial_key:
+                            entity.update({'valor': ent.text})
 
-                        next_ent = doc.ents[i + 1 + increment] if i + 1 + increment < len(doc.ents) else None
-
-                        if is_next:
-                            label = self.auto_label('contratada', clause)
-                            is_next = False
-
-                        elif next_ent is not None and next_ent.label_ == 'ORG':
-                            label = self.auto_label('contratante', clause)
-                            is_next = True
-
+                        elif self.__initial_key in result.keys():
+                            result[self.__initial_key].update({'valor': ent.text})
+                        
                         else:
-                            label = self.auto_label(self.labels[ent.label_], clause)
+                            for mkey in main_keys:
+                                result[mkey].update({'valor': ent.text})
 
-                    else:
-                        label = self.auto_label(self.labels[ent.label_], clause)
+                        find_value = True
+
+                    label = self.auto_label(self.labels[ent.label_], clause)
 
 
                     if len(entity.keys()) > 1:
@@ -103,12 +98,33 @@ class NER():
 
                     i += 1 + increment
 
+            clause_keys = list(clause.keys())
+            
+            # Searching for 'Contratante' and 'Contratada'
+            if len(clause_keys) > 1:
+                for i in range(len(clause_keys) - 1):
+                    key_in = clause_keys[i]
+                    next_key_in = clause_keys[i + 1]
+
+                    if 'organizacao' in key_in and 'organizacao' in next_key_in:
+                        if type(clause[key_in]) is dict and type(clause[next_key_in]) is dict:
+                            if key not in main_keys:
+                                main_keys.append(key) 
+
+                            contratante = clause.pop(key_in, {})
+                            contratada = clause.pop(next_key_in, {})
+
+                            clause.update({
+                                self.auto_label('contratante', clause): contratante,
+                                self.auto_label('contratada', clause): contratada,
+                            })
+
             if bool(clause):
                 result[key] = clause
 
         return result
 
-
+    # Searching for the entity's children
     def add_entity_attributes(self, start_index, doc_ents, depth = 0) -> tuple:
         entity = {}
         increment = 0
@@ -118,7 +134,7 @@ class NER():
         ent_probable_labels = self.probable_labels[doc_ents[start_index].label_]
 
         for j in range(len(ent_probable_labels[depth])):
-            if start_index + j + 1 >= len(doc_ents) - 1:
+            if start_index + j + 1 >= len(doc_ents):
                 return (entity, increment)
 
             next_ent = doc_ents[start_index + j + 1]

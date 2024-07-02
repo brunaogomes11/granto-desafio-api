@@ -71,7 +71,14 @@ class ReadDocument:
             blocks = page.get_text("blocks")
 
             for block in blocks:
-                row = block[4].replace("\n", " ")
+                row = block[4].replace("\n", " ").strip()
+
+                if row == '':
+                    continue
+
+                row = row[:-1].replace(";", "") + row[-1]
+                row = row[:-1].replace(":", "") + row[-1]
+
                 text_list, paragraph = self.__is_paragraph(text_list, paragraph, row)
 
         return text_list
@@ -79,7 +86,8 @@ class ReadDocument:
 
     def __get_chuncks_from_scanned_doc(self) -> list:
         images = self.__get_scanned_images()
-        return self.__process_images_concurrently(images)
+        text_list = self.__process_images_concurrently(images[1:])
+        return self.__process_image(images[0]) + text_list
 
 
     def __get_scanned_images(self):
@@ -108,6 +116,13 @@ class ReadDocument:
         page_text = pytesseract.image_to_string(image, lang="por")
 
         for row in page_text.split("\n"):
+            row = row.strip()
+
+            if row == '':
+                continue
+
+            row = row[:-1].replace(";", "") + row[-1]
+            row = row[:-1].replace(":", "") + row[-1]
             text_list, paragraph = self.__is_paragraph(text_list, paragraph, row)
 
         if paragraph.strip() != "":
@@ -136,7 +151,8 @@ class ReadDocument:
         row = row.replace("º.", "")
         row = row.strip()
 
-        if len(row) < self.__min_row_len or row[-1] in [".", ";", ":"] or "CLAUSULA" in unidecode(row).upper(): 
+        
+        if len(row) < self.__min_row_len or row[-1] in [".", ";"] or "CLAUSULA" in unidecode(row).upper(): 
             paragraph += f" {row}"
 
             if paragraph.strip() != "" and len(paragraph) > 5:
@@ -163,6 +179,8 @@ class ReadDocument:
                 if  len(row) > 70: # Número arbitrário
                     row = row.split("-")[0]
                     row = row.split("–")[0]
+                    row = row.split("—")[0]
+                    
                 print(row)
                 
                 new_key = self.__clean_key(row)
