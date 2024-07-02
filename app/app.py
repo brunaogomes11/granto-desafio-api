@@ -84,6 +84,7 @@ def busca(query = '', pagina = None):
         page = int(pagina) if pagina else 1
         page_size = 10
         start_index = (page - 1) * page_size
+        print(query)
         if query not in all_list:
             index_config = {
                 "$search": {
