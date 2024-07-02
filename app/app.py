@@ -78,8 +78,8 @@ def quantidade_documentos():
 @app.route("/buscar", methods=['GET', 'POST'])
 def busca(query = '', pagina = None):
     if request.method == "POST":
-        pagina = request.args.get('pagina')
-        query = request.args.get('query')
+        pagina = request.args.get('pagina') if request.args.get('pagina') else 1
+        query = request.args.get('query') if request.args.get('pagina') else ' '
         all_list = [' ', '', '*']
         page = int(pagina) if pagina else 1
         page_size = 10
