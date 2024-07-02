@@ -4,7 +4,6 @@ from spacy import load
 class NER():
     def __init__(self):
         self.nlp = load('./app/document_reader/models/ner-v2_5')
-        self.initial_key = 'preambulo'
         self.labels = {
             'PER': 'pessoa',
             'ORG': 'organizacao',
@@ -59,7 +58,9 @@ class NER():
 
             for paragraph in list_:
                 doc = self.nlp(paragraph)
-
+                is_next = False
+                contains = any(key_word in paragraph.lower() for key_word in ['contratada', 'contratante'])
+                
                 i = 0
                 while i < len(doc.ents):
                     ent = doc.ents[i]
@@ -70,8 +71,28 @@ class NER():
                     if ent.label_ in self.probable_labels.keys():
                         _entity, increment = self.add_entity_attributes(i, doc.ents)
                         entity.update(_entity)
+                    
+                    if ent.label_ == 'ORG' and contains:
+                        if len(entity.keys()) <= 1:
+                            i += 1
+                            continue
 
-                    label = self.auto_label(self.labels[ent.label_], clause)
+                        next_ent = doc.ents[i + 1 + increment] if i + 1 + increment < len(doc.ents) else None
+
+                        if is_next:
+                            label = self.auto_label('contratada', clause)
+                            is_next = False
+
+                        elif next_ent is not None and next_ent.label_ == 'ORG':
+                            label = self.auto_label('contratante', clause)
+                            is_next = True
+
+                        else:
+                            label = self.auto_label(self.labels[ent.label_], clause)
+
+                    else:
+                        label = self.auto_label(self.labels[ent.label_], clause)
+
 
                     if len(entity.keys()) > 1:
                         clause[label] = entity
@@ -109,8 +130,7 @@ class NER():
             elif depth < 1 and next_ent.label_ in ent_probable_labels[depth + 1]:
                 _entity, _increment = self.add_entity_attributes(start_index + j + 1, doc_ents) #, depth
                 entity[self.auto_label(label, entity)] = _entity
-                increment += _increment
-                break
+                increment += 1 + _increment
 
             else:
                 break
