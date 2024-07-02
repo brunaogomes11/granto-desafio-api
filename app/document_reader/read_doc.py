@@ -17,7 +17,7 @@ class ReadDocument:
         self.doc = None
         self.__cl_model = load("./app/document_reader/models/cl-v2_1")
 
-        self.__min_row_len = 75
+        self.__min_row_len = 50
         self.__initial_key = "preambulo"
         self.__remove_index_pattern = r"\b\d{1,2}\.\d{1,2}(\.\d{1,2})*\b"
 
@@ -45,7 +45,8 @@ class ReadDocument:
         if len(text_chunks) == 0:
             print("Scanned Document")
             text_chunks = self.__get_chuncks_from_scanned_doc()
-        # self.debug(text_chunks)
+
+        self.debug(text_chunks)
 
         self.doc.close()
         return text_chunks
@@ -107,7 +108,7 @@ class ReadDocument:
         page_text = pytesseract.image_to_string(image, lang="por")
 
         for row in page_text.split("\n"):
-            text_list, paragraph = self.__is_paragraph(text_list, paragraph, row.strip())
+            text_list, paragraph = self.__is_paragraph(text_list, paragraph, row)
 
         if paragraph.strip() != "":
             text_list.append(paragraph)
@@ -115,7 +116,7 @@ class ReadDocument:
         return text_list
 
 
-    def __process_images_concurrently(self, images: Image, max_workers = 1) -> list:
+    def __process_images_concurrently(self, images: Image, max_workers = 8) -> list:
         results = []
     
         with ThreadPoolExecutor(max_workers = max_workers) as executor:
@@ -132,7 +133,10 @@ class ReadDocument:
 
     
     def __is_paragraph(self, text_list: list, paragraph: str, row: str):
-        if len(row) < self.__min_row_len or row.strip()[-1] in [".", ";", ":"]: 
+        row = row.replace("º.", "")
+        row = row.strip()
+
+        if len(row) < self.__min_row_len or row[-1] in [".", ";", ":"] or "CLAUSULA" in unidecode(row).upper(): 
             paragraph += f" {row}"
 
             if paragraph.strip() != "" and len(paragraph) > 5:
@@ -155,11 +159,11 @@ class ReadDocument:
             doc = self.__cl_model(row).cats # Verify if is a title
             
 
-            if doc["Clausula"] >= 0.95 or "CLAUSULA" in unidecode(row[:16]).upper(): # Intervalo arbitrário
-                if  len(row) > 120: # Número arbitrário
+            if doc["Clausula"] >= 0.95 or "CLAUSULA" in unidecode(row[:20]).upper(): # Intervalo arbitrário
+                if  len(row) > 70: # Número arbitrário
                     row = row.split("-")[0]
                     row = row.split("–")[0]
-                    print(row)
+                print(row)
                 
                 new_key = self.__clean_key(row)
 
@@ -191,6 +195,7 @@ class ReadDocument:
         new_key = new_key.replace("  ", "_")
         new_key = new_key.replace(" ", "_")
         return new_key
+
 
     def debug(self, text_chunks):
         with open("./app/document_reader/test/data/result.txt", mode='w') as txt:
