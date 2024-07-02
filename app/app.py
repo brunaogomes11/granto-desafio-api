@@ -87,7 +87,7 @@ def busca(query = '', pagina = None):
         if query not in all_list:
             index_config = {
                 "$search": {
-                    "index": "search",
+                    "index": "searchEntities",
                     "text": {
                         "query": query,
                         "path": {
