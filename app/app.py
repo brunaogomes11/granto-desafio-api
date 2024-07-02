@@ -192,7 +192,7 @@ def dados_graficos(grafico):
             {
                 "$group": {
                     "_id": {
-                        "$ifNull": ["$preambulo.organizacao.razao_social", "Empresa não especificada"]
+                        "$ifNull": ["$preambulo.contratante.razao_social", "Empresa não especificada"]
                     },
                     "valor_total_seguro": {"$sum": "$valor_seguro_numeric"}
                 }
@@ -234,7 +234,11 @@ def dados_graficos(grafico):
 
         for doc in documentos:
             preambulo = doc.get('preambulo', {})
-            endereco = preambulo.get('endereco', '')
+            contratante = preambulo.get('contratante', {})
+            if isinstance(contratante, dict) and 'endereco' in contratante:
+                endereco = contratante['endereco']
+            else:
+                endereco = preambulo.get('endereco', '')
             estado_encontrado = None
             
             # Busca por nome de estado ou sigla
