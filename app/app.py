@@ -70,7 +70,11 @@ def quantidade_documentos():
     except:
         return 404
 
-
+@app.route("/buscar/<pagina>/<query>/", methods=['GET', 'POST'])
+@app.route("/buscar/<pagina>/<query>", methods=['GET', 'POST'])
+@app.route("/buscar/<pagina>/", methods=['GET', 'POST'])
+@app.route("/buscar/<pagina>", methods=['GET', 'POST'])
+@app.route("/buscar/", methods=['GET', 'POST'])
 @app.route("/buscar", methods=['GET', 'POST'])
 def busca(query = '', pagina = None):
     if request.method == "POST":
