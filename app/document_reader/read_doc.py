@@ -131,7 +131,7 @@ class ReadDocument:
         return text_list
 
 
-    def __process_images_concurrently(self, images: Image, max_workers = 1) -> list:
+    def __process_images_concurrently(self, images: Image, max_workers = 4) -> list:
         results = []
     
         with ThreadPoolExecutor(max_workers = max_workers) as executor:
