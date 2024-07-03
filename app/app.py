@@ -40,6 +40,18 @@ def deletar(id):
         return jsonify({'message': 'Documento removido com sucesso'}), 200
     else:
         return jsonify({'message': 'Documento não encontrado'}), 404
+    
+@app.route("/atualizar/<id>")
+def atualizar(id):
+    data = request.json
+    update_fields = {"$set": data} 
+
+    result = db.col.update_one({"_id": ObjectId(id)}, update_fields)
+
+    if result.matched_count == 1:
+        return jsonify({'message': 'Documento atualizado com sucesso'}), 200
+    else:
+        return jsonify({'message': 'Documento não encontrado'}), 404
 
 @app.route("/listar/<pagina>")
 @app.route("/listar/")
