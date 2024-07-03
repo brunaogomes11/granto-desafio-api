@@ -10,12 +10,14 @@ import tempfile
 ner = NER()
 doc_reader = ReadDocument()
 
-def read_and_classify(file_data: Binary, filename: str) -> dict:  
-    with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as temp_pdf_file:
-        temp_pdf_path = temp_pdf_file.name
-        temp_pdf_file.write(file_data)
+def read_and_classify(file_data: Binary, filename: str) -> dict:
+    file_type = filename.split('.')[-1]
 
-    doc = doc_reader.read_document(temp_pdf_path)
+    with tempfile.NamedTemporaryFile(suffix=f'.{file_type}', delete=False) as temp_file:
+        temp_path = temp_file.name
+        temp_file.write(file_data)
+
+    doc = doc_reader.read_document(temp_path)
     doc = ner.classify_text(doc)
 
     dt_string = datetime.now().strftime("%d-%m-%YT%H:%M:%S")
