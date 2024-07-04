@@ -14,6 +14,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 class ReadDocument:
     def __init__(self):
+        pytesseract.pytesseract.tesseract_cmd = '/app/.apt/usr/bin/tesseract'
+        
         self.doc = None
         self.__cl_model = load("./app/document_reader/models/cl-v2_1")
 
@@ -112,7 +114,6 @@ class ReadDocument:
 
     def __process_image(self, image) -> list:
         text_list, paragraph = [], ""
-
         page_text = pytesseract.image_to_string(image, lang="por")
 
         for row in page_text.split("\n"):
