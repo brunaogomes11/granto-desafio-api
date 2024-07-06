@@ -73,7 +73,7 @@ def listar(pagina=1):
             result.append(data)
         return jsonify({'index_inicial':start_index, 'index_final':final_index,'total':total_documentos,'documentos': result, 'num_pages':num_pages})
     except:
-        jsonify({"error":"Não foi possível encontrar nenhum dado"})
+        return jsonify({"error":"Não foi possível encontrar nenhum dado"})
 
 @app.route('/quantidade_documentos')
 def quantidade_documentos():
@@ -90,6 +90,7 @@ def quantidade_documentos():
 @app.route("/buscar", methods=['GET', 'POST'])
 def busca(query = '', pagina = None):
     if request.method == "POST" :
+        str(request.data)
         pagina = request.args.get('pagina') or 1
         query = request.args.get('query') or ' '
         all_list = [' ', '', '*']
@@ -134,7 +135,7 @@ def busca(query = '', pagina = None):
                     result.append(data)
                 return jsonify({'index_inicial':start_index, 'index_final':final_index,'total':total_documentos,'documentos': result, 'num_pages':num_pages})
             except:
-                jsonify({"error":"Não foi possível encontrar nenhum dado"}), 404
+                return jsonify({"error":"Não foi possível encontrar nenhum dado"}), 404
         else:
             return jsonify({"error": "Formulário Inválido"}), 400
     else:
